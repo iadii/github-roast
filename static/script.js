@@ -18,11 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Roast Elements
     const roastBody = document.getElementById('roast-body');
+    const btnCopy = document.getElementById('btn-copy');
+    const btnShare = document.getElementById('btn-share');
+
+    let currentRoastText = "";
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const username = input.value.trim();
+
         if (!username) return;
 
         // Reset UI state
@@ -48,10 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update UI with data
             updateProfile(data.profile);
-            updateRoast(data.roast);
             
             // Show results
             resultGrid.style.display = 'grid';
+            
+            // Start Typewriter Effect
+            currentRoastText = data.roast;
+            typewriterEffect(roastBody, data.roast);
             
         } catch (error) {
             showError(error.message);
@@ -61,10 +69,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- Action Buttons ---
+
+    btnCopy.addEventListener('click', () => {
+        if (!currentRoastText) return;
+        navigator.clipboard.writeText(currentRoastText).then(() => {
+            const originalText = btnCopy.innerHTML;
+            btnCopy.innerHTML = '✅ Copied!';
+            setTimeout(() => {
+                btnCopy.innerHTML = originalText;
+            }, 2000);
+        });
+    });
+
+    btnShare.addEventListener('click', () => {
+        if (!currentRoastText) return;
+        const text = encodeURIComponent(`I just got roasted by AI on GitRoast! 🔥\n\n"${currentRoastText.substring(0, 100)}..."\n\nGet yours here: #GitRoast`);
+        window.open(`https://x.com/intent/post?text=${text}`, '_blank');
+    });
+
+    // --- Helper Functions ---
+
+    function typewriterEffect(element, text) {
+        element.innerHTML = '<span class="cursor"></span>';
+        const cursor = element.querySelector('.cursor');
+        let index = 0;
+
+        function type() {
+            if (index < text.length) {
+                const char = text.charAt(index);
+                if (char === '\n') {
+                    cursor.insertAdjacentHTML('beforebegin', '<br>');
+                } else {
+                    cursor.insertAdjacentText('beforebegin', char);
+                }
+                index++;
+                setTimeout(type, 10); // Adjust speed here (lower is faster)
+            } else {
+                 // Keep cursor blinking at the end or remove it
+                 // cursor.style.display = 'none'; 
+            }
+        }
+        type();
+    }
+
     function setLoading(isLoading) {
         button.disabled = isLoading;
-        button.textContent = isLoading ? 'Roasting...' : 'Roast';
         input.disabled = isLoading;
+        
+       
+        button.textContent = 'Roast';
+        
     }
 
     function showError(message) {
@@ -107,10 +162,5 @@ document.addEventListener('DOMContentLoaded', () => {
             detailsHtml += `<div class="detail-row">🔗 <a href="${blogUrl}" target="_blank">Website</a></div>`;
         }
         detailsContainer.innerHTML = detailsHtml;
-    }
-
-    function updateRoast(roastText) {
-        // Convert newlines to <br>
-        roastBody.innerHTML = roastText.replace(/\n/g, '<br>');
     }
 });

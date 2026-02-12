@@ -30,7 +30,7 @@
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/gitroast.git
+   git clone https://github.com/iadii/gitroast.git
    cd gitroast
    ```
 
